@@ -9,10 +9,14 @@ from api import create_api
 
 API_VERSION = "v1"
 
-def create_app():
+def create_app(username, password, matrikkel_user, matrikkel_pass):
     app = Flask(__name__)
 
-    create_api(app, API_VERSION)
+    app.config['BASIC_AUTH_FORCE'] = True
+    app.config['BASIC_AUTH_USERNAME'] = username
+    app.config['BASIC_AUTH_PASSWORD'] = password
+
+    create_api(app, API_VERSION, matrikkel_user, matrikkel_pass)
     if not app.debug:
         stream_handler = StreamHandler()
         app.logger.addHandler(stream_handler)
@@ -22,5 +26,12 @@ def create_app():
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5500))
-    app = create_app()
+
+    username = os.environ["FLOD_MATRIKKEL_USER"]
+    password = os.environ["FLOD_MATRIKKEL_PASS"]
+
+    matrikkel_user = os.environ["MATRIKKEL_USERNAME"]
+    matrikkel_password = os.environ["MATRIKKEL_PASSWORD"]
+
+    app = create_app(username, password, matrikkel_user, matrikkel_password)
     app.run(host='0.0.0.0', port=port, debug=True)

@@ -4,31 +4,34 @@
 import os
 import json
 from flask import request, Response, abort
+from flask.ext.basicauth import BasicAuth
 
 from matrikkel import MatrikkelBuildingService, MatrikkelAdressService
 
+
+
 MUNICIPALITY_NR = "1601"
 
-def create_api(app, api_version):
+def create_api(app, api_version, matrikkel_user, matrikkel_pass):
 
-    username = os.environ["MATRIKKEL_USERNAME"]
-    password = os.environ["MATRIKKEL_PASSWORD"]
+    basic_auth = BasicAuth(app)
 
     address_service = MatrikkelAdressService(
         'https://www.test.matrikkel.no/innsynapi_v3/adresse/AdresseWebService?WSDL',
         'file://%s/AdresseWebService.xml' % (os.getcwd()),
-        username,
-        password
+        matrikkel_user,
+        matrikkel_pass
     )
 
     building_service = MatrikkelBuildingService(
         'https://www.test.matrikkel.no/innsynapi_v3/bygning/BygningWebService?WSDL',
         'file://%s/BygningWebService.xml' % (os.getcwd()),
-        username,
-        password
+        matrikkel_user,
+        matrikkel_pass
     )
 
     @app.route("/api/%s/addresses" % api_version)
+    @basic_auth.required
     def addresses_api():
         query = request.args.get('query', None)
         if query:
@@ -39,6 +42,7 @@ def create_api(app, api_version):
         abort(404)
 
     @app.route("/api/%s/buildings" % api_version)
+    @basic_auth.required
     def buildings_api():
         bruksnr = request.args.get('bruksnr', None)
         gardsnr = request.args.get('gardsnr', None)
