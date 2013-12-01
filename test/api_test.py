@@ -31,6 +31,15 @@ class MatrikkelApiAddressTest(unittest.TestCase):
         self.assertEqual(len(data), 54)
         self.assertEqual(data[0]["name"], u"Kjøpmannsgata 50")
 
+    def test_handle_search_on_number(self):
+        rv = self.client.get("/api/v1/addresses?query=kjøpmannsgata 50")
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], u"Kjøpmannsgata 50")
+
+
 @unittest.skipUnless(os.environ.get("MATRIKKEL_USERNAME", None), "matrikkel username not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_PASSWORD", None), "matrikkel password not set")
 class MatrikkelApiBuildingTest(unittest.TestCase):

@@ -5,6 +5,7 @@ from suds.client import Client
 import xml.etree.ElementTree as ET
 import suds
 import os
+import re
 
 import logging
 import httplib, ssl, urllib2, socket
@@ -98,11 +99,29 @@ def serialize_ident(ident):
 
     return dict
 
+def get_number_and_letter(query):
+    #finds out if query ends in number or number + character
+    match = re.search(r'\d+([A-Za-z]?)$', query)
+    number = None
+    letter = None
+    if match:
+        number_and_letter =  match.group()
+        query = query.replace(number_and_letter, "")
+        number_match = re.search(r'\d+', number_and_letter)
+        if number_match:
+            number = number_match.group()
+        letter_match = re.search(r'[A-Za-z]$', number_and_letter)
+        if letter_match:
+            letter = letter_match.group()
+
+    return query, number, letter
+
+
 class MatrikkelAdressService(MatrikkelService):
 
     def search_address(self, query, municipality_number):
         matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
-
+        query, number, letter = get_number_and_letter(query)
         adresses =  self.client.service.findAdresserForVeg(
             query,
             municipality_number,
@@ -111,8 +130,10 @@ class MatrikkelAdressService(MatrikkelService):
 
         result = []
         for address in adresses:
-
             address_ident = address.vegadresseIdent
+            if number and int(number) != int(address_ident.nr):
+                continue
+
             address_response = {
                 "name": "%s %s" % (address.adressenavn, address_ident.nr)
             }
