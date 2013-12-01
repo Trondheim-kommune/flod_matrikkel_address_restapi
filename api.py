@@ -16,16 +16,18 @@ def create_api(app, api_version, matrikkel_user, matrikkel_pass):
 
     basic_auth = BasicAuth(app)
 
+    path = os.path.dirname(os.path.realpath(__file__))
+
     address_service = MatrikkelAdressService(
         'https://www.test.matrikkel.no/innsynapi_v3/adresse/AdresseWebService?WSDL',
-        'file://%s/AdresseWebService.xml' % (os.getcwd()),
+        'file://%s/AdresseWebService.xml' % path,
         matrikkel_user,
         matrikkel_pass
     )
 
     building_service = MatrikkelBuildingService(
         'https://www.test.matrikkel.no/innsynapi_v3/bygning/BygningWebService?WSDL',
-        'file://%s/BygningWebService.xml' % (os.getcwd()),
+        'file://%s/BygningWebService.xml' % path,
         matrikkel_user,
         matrikkel_pass
     )
