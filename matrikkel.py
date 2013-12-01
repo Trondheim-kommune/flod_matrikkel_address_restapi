@@ -25,10 +25,19 @@ class HTTPSConnectionV3(httplib.HTTPSConnection):
             self.sock = sock
             self._tunnel()
         try:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv3)
+            self.sock = ssl.wrap_socket(
+                sock, self.key_file,
+                self.cert_file,
+                ssl_version=ssl.PROTOCOL_SSLv3
+            )
         except ssl.SSLError, e:
             print("Trying SSLv23.")
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
+            self.sock = ssl.wrap_socket(
+                sock,
+                self.key_file,
+                self.cert_file,
+                ssl_version=ssl.PROTOCOL_SSLv23
+            )
 
 class HTTPSHandlerV3(urllib2.HTTPSHandler):
     def https_open(self, req):
@@ -46,11 +55,17 @@ class MatrikkelService(object):
 
         # install opener
         opener = urllib2.build_opener(HTTPSHandlerV3())
-        self.transport = suds.transport.https.HttpAuthenticated(username=username, password=password)
+        self.transport = suds.transport.https.HttpAuthenticated(
+            username=username,
+            password=password
+        )
         self.transport.urlopener = opener
 
     def create_client(self):
-        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        base64string = base64.encodestring(
+            '%s:%s' % (username, password)
+        ).replace('\n', '')
+
         authentication_header = {
             "WWW-Authenticate": "https://www.test.matrikkel.no",
             "Authorization" : "Basic %s" % base64string
@@ -90,7 +105,11 @@ class MatrikkelAdressService(MatrikkelService):
         client = self.create_client()
         matrikkel_context = client.factory.create('ns2:MatrikkelContext')
 
-        adresses =  client.service.findAdresserForVeg(query, municipality_number, matrikkel_context)
+        adresses =  client.service.findAdresserForVeg(
+            query,
+            municipality_number,
+            matrikkel_context
+        )
 
         result = []
         for address in adresses:
@@ -98,17 +117,39 @@ class MatrikkelAdressService(MatrikkelService):
 
             address_response = {}
             try:
-                address_response["name"] = "%s %s %s" % (address.adressenavn, address_ident.nr, address_ident.bokstav)
+                address_response["name"] = "%s %s %s" % (
+                    address.adressenavn,
+                    address_ident.nr,
+                    address_ident.bokstav
+                    )
             except AttributeError:
-                address_response["name"] = "%s %s" % (address.adressenavn, address_ident.nr)
-            address_response["matrikkel_ident"] = serialize_ident(address.matrikkelenhetIdent)
+                address_response["name"] = "%s %s" % (
+                    address.adressenavn,
+                    address_ident.nr
+                    )
+            address_response["matrikkel_ident"] = serialize_ident(
+                address.matrikkelenhetIdent
+            )
             result.append(address_response)
         return result
 
 
+def create_point_dict(point):
+        coord_string = point.point.coordinates.value.split(" ")
+        return {
+            "lon":float(coord_string[0]),
+            "lat": float(coord_string[1])
+            }
+
 class MatrikkelBuildingService(MatrikkelService):
 
-    def find_buildings(self, kommunenr, gardsnr, bruksnr, festenr=None, seksjonsnr=None):
+    def find_buildings(self,
+                       kommunenr,
+                       gardsnr,
+                       bruksnr,
+                       festenr=None,
+                       seksjonsnr=None):
+
         client = self.create_client()
         matrikkelenhetident = client.factory.create('ns5:MatrikkelenhetIdent')
         matrikkelenhetident.kommunenr = kommunenr
@@ -119,10 +160,18 @@ class MatrikkelBuildingService(MatrikkelService):
 
         matrikkel_context = client.factory.create('ns2:MatrikkelContext')
 
-        #EPSG: 32633
-        matrikkel_context.sosiKode = 23
+        #EPSG:4326
+        matrikkel_context.sosiKode = 84
 
-        return client.service.findBygningerForMatrikkelenhet(matrikkelenhetident, matrikkel_context)
+        buildings = client.service.findBygningerForMatrikkelenhet(
+            matrikkelenhetident,
+            matrikkel_context
+        )
+
+        return [
+            {"position": create_point_dict(building.representasjonspunkt)}
+        for building in buildings
+        ]
 
 
 username = os.environ["MATRIKKEL_USERNAME"]
@@ -149,12 +198,7 @@ building_service = MatrikkelBuildingService(
     password
 )
 
-buildings =  building_service.find_buildings(
-    addresses[0]["matrikkel_ident"]["kommunenr"],
-    addresses[0]["matrikkel_ident"]["gardsnr"],
-    addresses[0]["matrikkel_ident"]["bruksnr"],
-)
-
+buildings =  building_service.find_buildings('1601', 402, 187)
 
 for building in buildings:
-    print building.representasjonspunkt
+    print building
