@@ -46,8 +46,8 @@ def create_api(app, api_version, matrikkel_user, matrikkel_pass):
     @app.route("/api/%s/buildings" % api_version)
     @basic_auth.required
     def buildings_api():
-        bruksnr = request.args.get('bruksnr', None)
         gardsnr = request.args.get('gardsnr', None)
+        bruksnr = request.args.get('bruksnr', None)
         festenr = request.args.get('festenr', None)
         seksjonsnr = request.args.get('seksjonsnr', None)
         if bruksnr and gardsnr:
