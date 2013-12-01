@@ -39,6 +39,37 @@ class MatrikkelApiAddressTest(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["name"], u"Kjøpmannsgata 50")
 
+    def test_handle_search_on_number_and_letter(self):
+        rv = self.client.get("/api/v1/addresses?query=kjøpmannsgata 16B")
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], u"Kjøpmannsgata 16B")
+
+    def test_handle_search_on_number_and_letter_lowercase(self):
+        rv = self.client.get("/api/v1/addresses?query=kjøpmannsgata 16b")
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], u"Kjøpmannsgata 16B")
+
+    def test_handle_search_on_number_and_letter_with_space(self):
+        rv = self.client.get("/api/v1/addresses?query=kjøpmannsgata 16 B")
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], u"Kjøpmannsgata 16B")
+
+    def test_handle_search_on_number_and_letter_with_several_spaces(self):
+        rv = self.client.get("/api/v1/addresses?query=kjøpmannsgata 16    B")
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], u"Kjøpmannsgata 16B")
 
 @unittest.skipUnless(os.environ.get("MATRIKKEL_USERNAME", None), "matrikkel username not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_PASSWORD", None), "matrikkel password not set")

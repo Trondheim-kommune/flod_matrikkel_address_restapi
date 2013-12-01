@@ -101,7 +101,7 @@ def serialize_ident(ident):
 
 def get_number_and_letter(query):
     #finds out if query ends in number or number + character
-    match = re.search(r'\d+([A-Za-z]?)$', query)
+    match = re.search(r'\d+(\s+)?([A-Za-z]?)$', query)
     number = None
     letter = None
     if match:
@@ -121,26 +121,33 @@ class MatrikkelAdressService(MatrikkelService):
 
     def search_address(self, query, municipality_number):
         matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
-        query, number, letter = get_number_and_letter(query)
+        query, search_number, search_letter = get_number_and_letter(query)
         adresses =  self.client.service.findAdresserForVeg(
             query,
             municipality_number,
             matrikkel_context
         )
-
         result = []
         for address in adresses:
             address_ident = address.vegadresseIdent
-            if number and int(number) != int(address_ident.nr):
+            if search_number and int(search_number) != int(address_ident.nr):
                 continue
+
+            try:
+                letter = address_ident.bokstav
+            except AttributeError:
+                letter = None
+
+            if search_letter and letter.lower() != search_letter.lower():
+                continue
+
 
             address_response = {
                 "name": "%s %s" % (address.adressenavn, address_ident.nr)
             }
-            try:
-                address_response["name"] += address_ident.bokstav
-            except AttributeError:
-                pass
+            if letter:
+                address_response["name"] += letter
+
 
             try:
                 address_response["matrikkel_ident"] = serialize_ident(
