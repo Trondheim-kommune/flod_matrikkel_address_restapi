@@ -80,7 +80,7 @@ class MatrikkelApiBuildingTest(unittest.TestCase):
 
         self.client = self.app.test_client()
     def test_get_points_for_bnr_gnr(self):
-        rv = self.client.get("/api/v1/buildings?gnr=402&bnr=188")
+        rv = self.client.get("/api/v1/buildings?gardsnr=402&bruksnr=188")
         self.assertEqual(200, rv.status_code)
         data = json.loads(rv.data)
         self.assertEqual(len(data), 1)

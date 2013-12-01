@@ -40,17 +40,17 @@ def create_api(app, api_version):
 
     @app.route("/api/%s/buildings" % api_version)
     def buildings_api():
-        bnr = request.args.get('bnr', None)
-        gnr = request.args.get('gnr', None)
-        fnr = request.args.get('fnr', None)
-        snr = request.args.get('snr', None)
-        if bnr and gnr:
+        bruksnr = request.args.get('bruksnr', None)
+        gardsnr = request.args.get('gardsnr', None)
+        festenr = request.args.get('festenr', None)
+        seksjonsnr = request.args.get('seksjonsnr', None)
+        if bruksnr and gardsnr:
             buildings = building_service.find_buildings(
                 MUNICIPALITY_NR,
-                gnr,
-                bnr,
-                fnr,
-                snr
+                gardsnr,
+                bruksnr,
+                festenr,
+                seksjonsnr
             )
             return Response(json.dumps(buildings), mimetype="application/json")
         abort(404)
