@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from suds.client import Client
-import xml.etree.ElementTree as ET
 import suds
 import os
 import re
