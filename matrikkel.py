@@ -115,17 +115,17 @@ class MatrikkelAdressService(MatrikkelService):
                 address_ident = address.vegadresseIdent
 
                 address_response = {}
+
+                address_response["name"] = "%s %s" % (
+                    address.adressenavn,
+                    address_ident.nr
+                    )
+
                 try:
-                    address_response["name"] = "%s %s%s" % (
-                        address.adressenavn,
-                        address_ident.nr,
-                        address_ident.bokstav
-                        )
+                    address_response["name"] += address_ident.bokstav
                 except AttributeError:
-                    address_response["name"] = "%s %s" % (
-                        address.adressenavn,
-                        address_ident.nr
-                        )
+                    pass
+
                 address_response["matrikkel_ident"] = serialize_ident(
                     address.matrikkelenhetIdent
                 )

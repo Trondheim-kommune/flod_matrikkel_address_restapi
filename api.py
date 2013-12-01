@@ -33,7 +33,7 @@ def create_api(app, api_version):
         query = request.args.get('query', None)
         if query:
             addresses = address_service.search_address(
-                query.decode("UTF-8"), MUNICIPALITY_NR
+                query, MUNICIPALITY_NR
             )
             return Response(json.dumps(addresses), mimetype="application/json")
         abort(404)
