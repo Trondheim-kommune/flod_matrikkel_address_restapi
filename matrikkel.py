@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 
 from suds.client import Client
 import xml.etree.ElementTree as ET
@@ -7,9 +7,7 @@ import suds
 import os
 
 import logging
-
 import httplib, ssl, urllib2, socket
-
 import base64
 
 logging.basicConfig(level=logging.INFO)
@@ -60,10 +58,11 @@ class MatrikkelService(object):
             password=password
         )
         self.transport.urlopener = opener
+        self.client = self.create_client()
 
     def create_client(self):
         base64string = base64.encodestring(
-            '%s:%s' % (username, password)
+            '%s:%s' % (self.username, self.password)
         ).replace('\n', '')
 
         authentication_header = {
@@ -102,10 +101,9 @@ def serialize_ident(ident):
 class MatrikkelAdressService(MatrikkelService):
 
     def search_address(self, query, municipality_number):
-        client = self.create_client()
-        matrikkel_context = client.factory.create('ns2:MatrikkelContext')
+        matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
 
-        adresses =  client.service.findAdresserForVeg(
+        adresses =  self.client.service.findAdresserForVeg(
             query,
             municipality_number,
             matrikkel_context
@@ -113,24 +111,27 @@ class MatrikkelAdressService(MatrikkelService):
 
         result = []
         for address in adresses:
-            address_ident = address.vegadresseIdent
-
-            address_response = {}
             try:
-                address_response["name"] = "%s %s %s" % (
-                    address.adressenavn,
-                    address_ident.nr,
-                    address_ident.bokstav
-                    )
+                address_ident = address.vegadresseIdent
+
+                address_response = {}
+                try:
+                    address_response["name"] = "%s %s%s" % (
+                        address.adressenavn,
+                        address_ident.nr,
+                        address_ident.bokstav
+                        )
+                except AttributeError:
+                    address_response["name"] = "%s %s" % (
+                        address.adressenavn,
+                        address_ident.nr
+                        )
+                address_response["matrikkel_ident"] = serialize_ident(
+                    address.matrikkelenhetIdent
+                )
+                result.append(address_response)
             except AttributeError:
-                address_response["name"] = "%s %s" % (
-                    address.adressenavn,
-                    address_ident.nr
-                    )
-            address_response["matrikkel_ident"] = serialize_ident(
-                address.matrikkelenhetIdent
-            )
-            result.append(address_response)
+                pass
         return result
 
 
@@ -150,20 +151,20 @@ class MatrikkelBuildingService(MatrikkelService):
                        festenr=None,
                        seksjonsnr=None):
 
-        client = self.create_client()
-        matrikkelenhetident = client.factory.create('ns5:MatrikkelenhetIdent')
+
+        matrikkelenhetident = self.client.factory.create('ns5:MatrikkelenhetIdent')
         matrikkelenhetident.kommunenr = kommunenr
         matrikkelenhetident.gardsnr = gardsnr
         matrikkelenhetident.bruksnr = bruksnr
         matrikkelenhetident.festenr = festenr
         matrikkelenhetident.seksjonsnr = seksjonsnr
 
-        matrikkel_context = client.factory.create('ns2:MatrikkelContext')
+        matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
 
         #EPSG:4326
         matrikkel_context.sosiKode = 84
 
-        buildings = client.service.findBygningerForMatrikkelenhet(
+        buildings = self.client.service.findBygningerForMatrikkelenhet(
             matrikkelenhetident,
             matrikkel_context
         )
@@ -172,33 +173,3 @@ class MatrikkelBuildingService(MatrikkelService):
             {"position": create_point_dict(building.representasjonspunkt)}
         for building in buildings
         ]
-
-
-username = os.environ["MATRIKKEL_USERNAME"]
-password = os.environ["MATRIKKEL_PASSWORD"]
-
-
-address_service = MatrikkelAdressService(
-    'https://www.test.matrikkel.no/innsynapi_v3/adresse/AdresseWebService?WSDL',
-    'file:///home/atlefren/code/matrikkel/AdresseWebService.xml',
-    username,
-    password
-)
-
-
-addresses = address_service.search_address("ravelsveita", "1601")
-for address in addresses:
-    print address
-
-
-building_service = MatrikkelBuildingService(
-    'https://www.test.matrikkel.no/innsynapi_v3/bygning/BygningWebService?WSDL',
-    'file:///home/atlefren/code/matrikkel/BygningWebService.xml',
-    username,
-    password
-)
-
-buildings =  building_service.find_buildings('1601', 402, 187)
-
-for building in buildings:
-    print building
