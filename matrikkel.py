@@ -3,11 +3,12 @@
 
 from suds.client import Client
 import suds
-import os
 import re
-
 import logging
-import httplib, ssl, urllib2, socket
+import httplib
+import ssl
+import urllib2
+import socket
 import base64
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +29,7 @@ class HTTPSConnectionV3(httplib.HTTPSConnection):
                 self.cert_file,
                 ssl_version=ssl.PROTOCOL_SSLv3
             )
-        except ssl.SSLError, e:
+        except ssl.SSLError:
             print("Trying SSLv23.")
             self.sock = ssl.wrap_socket(
                 sock,
@@ -36,6 +37,7 @@ class HTTPSConnectionV3(httplib.HTTPSConnection):
                 self.cert_file,
                 ssl_version=ssl.PROTOCOL_SSLv23
             )
+
 
 class HTTPSHandlerV3(urllib2.HTTPSHandler):
     def https_open(self, req):
@@ -46,7 +48,7 @@ class MatrikkelService(object):
 
     def __init__(self, url, wsdl_url, username, password):
         self.url = url
-        self.wsdl_url= wsdl_url
+        self.wsdl_url = wsdl_url
 
         self.username = username
         self.password = password
@@ -67,36 +69,38 @@ class MatrikkelService(object):
 
         authentication_header = {
             "WWW-Authenticate": "https://www.test.matrikkel.no",
-            "Authorization" : "Basic %s" % base64string
+            "Authorization": "Basic %s" % base64string
         }
 
         client = Client(
             url=self.wsdl_url,
             location=self.url,
-            transport = self.transport,
+            transport=self.transport,
             username=self.username,
             password=self.password
         )
         client.set_options(headers=authentication_header)
         return client
 
+
 def serialize_ident(ident):
-    dict=  {
+    dict = {
         "kommunenr": str(ident.kommunenr),
         "gardsnr": ident.gardsnr,
         "bruksnr": ident.bruksnr
     }
     try:
-        dict["festenr"] =  ident.festenr
+        dict["festenr"] = ident.festenr
     except AttributeError:
         pass
 
     try:
-        dict["seksjonsnr"] =  ident.seksjonsnr
+        dict["seksjonsnr"] = ident.seksjonsnr
     except AttributeError:
         pass
 
     return dict
+
 
 def get_number_and_letter(query):
     #finds out if query ends in number or number + character
@@ -104,7 +108,7 @@ def get_number_and_letter(query):
     number = None
     letter = None
     if match:
-        number_and_letter =  match.group()
+        number_and_letter = match.group()
         query = query.replace(number_and_letter, "")
         number_match = re.search(r'\d+', number_and_letter)
         if number_match:
@@ -121,7 +125,7 @@ class MatrikkelAdressService(MatrikkelService):
     def search_address(self, query, municipality_number):
         matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
         query, search_number, search_letter = get_number_and_letter(query)
-        adresses =  self.client.service.findAdresserForVeg(
+        adresses = self.client.service.findAdresserForVeg(
             query,
             municipality_number,
             matrikkel_context
@@ -140,13 +144,11 @@ class MatrikkelAdressService(MatrikkelService):
             if search_letter and letter.lower() != search_letter.lower():
                 continue
 
-
             address_response = {
                 "name": "%s %s" % (address.adressenavn, address_ident.nr)
             }
             if letter:
                 address_response["name"] += letter
-
 
             try:
                 address_response["matrikkel_ident"] = serialize_ident(
@@ -161,19 +163,18 @@ class MatrikkelAdressService(MatrikkelService):
 def create_point_dict(point):
         coord_string = point.point.coordinates.value.split(" ")
         return {
-            "lon":float(coord_string[0]),
+            "lon": float(coord_string[0]),
             "lat": float(coord_string[1])
             }
 
-class MatrikkelBuildingService(MatrikkelService):
 
+class MatrikkelBuildingService(MatrikkelService):
     def find_buildings(self,
                        kommunenr,
                        gardsnr,
                        bruksnr,
                        festenr=None,
                        seksjonsnr=None):
-
 
         matrikkelenhetident = self.client.factory.create('ns5:MatrikkelenhetIdent')
         matrikkelenhetident.kommunenr = kommunenr
@@ -194,5 +195,5 @@ class MatrikkelBuildingService(MatrikkelService):
 
         return [
             {"position": create_point_dict(building.representasjonspunkt)}
-        for building in buildings
+            for building in buildings
         ]
