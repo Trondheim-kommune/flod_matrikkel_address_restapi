@@ -112,3 +112,15 @@ class MatrikkelApiBuildingTest(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["position"]["lat"], 63.43152178572586)
         self.assertEqual(data[0]["position"]["lon"], 10.39263181301638)
+
+    def test_should_not_return_bygningsendring(self):
+        rv = self.client.get("/api/v1/buildings?gardsnr=16&bruksnr=60", headers=self.headers)
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+        self.assertEqual(len(data), 16)
+
+    def test_should_get_return_bygningsnummer(self):
+        rv = self.client.get("/api/v1/buildings?gardsnr=402&bruksnr=188", headers=self.headers)
+        self.assertEqual(200, rv.status_code)
+        data = json.loads(rv.data)
+        self.assertEqual(data[0]["building_number"], 182166081)

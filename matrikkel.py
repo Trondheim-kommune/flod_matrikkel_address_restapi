@@ -194,6 +194,9 @@ class MatrikkelBuildingService(MatrikkelService):
         )
 
         return [
-            {"position": create_point_dict(building.representasjonspunkt)}
-            for building in buildings
+            {
+                "position": create_point_dict(building.representasjonspunkt),
+                "building_number": building.bygningIdent.bygningsnr
+            }
+            for building in buildings if str(building.__class__) == "suds.sudsobject.Bygning"
         ]
