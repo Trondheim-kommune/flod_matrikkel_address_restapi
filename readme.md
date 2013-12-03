@@ -37,6 +37,7 @@ where "festenr" and "seksjonsnr" is optional.
 This calls the "findBygningerForMatrikkelenhet()" in BygningWebService and picks out location and
 building number from the response (after filtering out "BygningsEndring" objects). This returns a
 list of objects on the form:
+
     {
         "position": {
             "lon": longitude in epsg:4326,
