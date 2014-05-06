@@ -125,11 +125,16 @@ class MatrikkelAdressService(MatrikkelService):
     def search_address(self, query, municipality_number):
         matrikkel_context = self.client.factory.create('ns2:MatrikkelContext')
         query, search_number, search_letter = get_number_and_letter(query)
-        adresses = self.client.service.findAdresserForVeg(
-            query,
-            municipality_number,
-            matrikkel_context
-        )
+
+        try:
+            adresses = self.client.service.findAdresserForVeg(
+                query,
+                municipality_number,
+                matrikkel_context
+            )
+        except Exception, e:
+            print type(e)
+            adresses = []
         result = []
         for address in adresses:
             address_ident = address.vegadresseIdent

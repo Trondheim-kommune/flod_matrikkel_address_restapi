@@ -8,7 +8,7 @@ from base64 import b64encode
 
 import app
 
-
+@unittest.skipUnless(os.environ.get("MATRIKKEL_BASE_URL", None), "matrikkel url not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_USERNAME", None), "matrikkel username not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_PASSWORD", None), "matrikkel password not set")
 class MatrikkelApiAddressTest(unittest.TestCase):
@@ -21,6 +21,7 @@ class MatrikkelApiAddressTest(unittest.TestCase):
         self.app = app.create_app(
             username,
             password,
+            os.environ["MATRIKKEL_BASE_URL"],
             os.environ["MATRIKKEL_USERNAME"],
             os.environ["MATRIKKEL_PASSWORD"]
         )
@@ -85,6 +86,7 @@ class MatrikkelApiAddressTest(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["name"], u"Kjøpmannsgata 16B")
 
+@unittest.skipUnless(os.environ.get("MATRIKKEL_BASE_URL", None), "matrikkel url not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_USERNAME", None), "matrikkel username not set")
 @unittest.skipUnless(os.environ.get("MATRIKKEL_PASSWORD", None), "matrikkel password not set")
 class MatrikkelApiBuildingTest(unittest.TestCase):
@@ -96,6 +98,7 @@ class MatrikkelApiBuildingTest(unittest.TestCase):
         self.app = app.create_app(
             username,
             password,
+            os.environ["MATRIKKEL_BASE_URL"],
             os.environ["MATRIKKEL_USERNAME"],
             os.environ["MATRIKKEL_PASSWORD"]
         )
@@ -117,7 +120,7 @@ class MatrikkelApiBuildingTest(unittest.TestCase):
         rv = self.client.get("/api/v1/buildings?gardsnr=16&bruksnr=60", headers=self.headers)
         self.assertEqual(200, rv.status_code)
         data = json.loads(rv.data)
-        self.assertEqual(len(data), 16)
+        self.assertEqual(len(data), 17)
 
     def test_should_get_return_bygningsnummer(self):
         rv = self.client.get("/api/v1/buildings?gardsnr=402&bruksnr=188", headers=self.headers)

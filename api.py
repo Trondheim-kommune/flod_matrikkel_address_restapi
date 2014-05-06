@@ -12,21 +12,21 @@ from matrikkel import MatrikkelBuildingService, MatrikkelAdressService
 
 MUNICIPALITY_NR = "1601"
 
-def create_api(app, api_version, matrikkel_user, matrikkel_pass):
+def create_api(app, api_version, matrikkel_url, matrikkel_user, matrikkel_pass):
 
     basic_auth = BasicAuth(app)
 
     path = os.path.dirname(os.path.realpath(__file__))
 
     address_service = MatrikkelAdressService(
-        'https://www.test.matrikkel.no/innsynapi_v3/adresse/AdresseWebService?WSDL',
+        '%s/innsynapi_v3/adresse/AdresseWebService?WSDL' % matrikkel_url,
         'file://%s/AdresseWebService.xml' % path,
         matrikkel_user,
         matrikkel_pass
     )
 
     building_service = MatrikkelBuildingService(
-        'https://www.test.matrikkel.no/innsynapi_v3/bygning/BygningWebService?WSDL',
+        '%s/innsynapi_v3/bygning/BygningWebService?WSDL' % matrikkel_url,
         'file://%s/BygningWebService.xml' % path,
         matrikkel_user,
         matrikkel_pass
