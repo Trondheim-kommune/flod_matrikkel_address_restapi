@@ -9,8 +9,8 @@ from flask.ext.basicauth import BasicAuth
 from matrikkel import MatrikkelBuildingService, MatrikkelAdressService
 
 
+MUNICIPALITY_NR = os.environ["MUNICIPALITY_NUMBER"]
 
-MUNICIPALITY_NR = "1601"
 
 def create_api(app, api_version, matrikkel_url, matrikkel_user, matrikkel_pass):
 
