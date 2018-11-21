@@ -10,6 +10,7 @@ import ssl
 import urllib2
 import socket
 import base64
+from flask import current_app
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,20 +24,12 @@ class HTTPSConnectionV3(httplib.HTTPSConnection):
         if self._tunnel_host:
             self.sock = sock
             self._tunnel()
-        try:
-            self.sock = ssl.wrap_socket(
-                sock, self.key_file,
-                self.cert_file,
-                ssl_version=ssl.PROTOCOL_SSLv3
-            )
-        except ssl.SSLError:
-            print("Trying SSLv23.")
-            self.sock = ssl.wrap_socket(
-                sock,
-                self.key_file,
-                self.cert_file,
-                ssl_version=ssl.PROTOCOL_SSLv23
-            )
+        self.sock = ssl.wrap_socket(
+            sock,
+            self.key_file,
+            self.cert_file,
+            ssl_version=ssl.PROTOCOL_SSLv23
+        )
 
 
 class HTTPSHandlerV3(urllib2.HTTPSHandler):
@@ -133,7 +126,8 @@ class MatrikkelAdressService(MatrikkelService):
                 matrikkel_context
             )
         except Exception, e:
-            print type(e)
+            current_app.logger.error(type(e))
+            current_app.logger.error(e)
             adresses = []
         result = []
         for address in adresses:
