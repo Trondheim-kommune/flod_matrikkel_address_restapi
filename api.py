@@ -4,7 +4,7 @@
 import os
 import json
 from flask import request, Response, abort
-from flask.ext.basicauth import BasicAuth
+from flask_basicauth import BasicAuth
 
 from matrikkel import MatrikkelBuildingService, MatrikkelAdressService
 

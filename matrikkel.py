@@ -5,9 +5,9 @@ from suds.client import Client
 import suds
 import re
 import logging
-import httplib
+import http.client
 import ssl
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import socket
 import base64
 from flask import current_app
@@ -15,9 +15,9 @@ from flask import current_app
 logging.basicConfig(level=logging.INFO)
 
 
-class HTTPSConnectionV3(httplib.HTTPSConnection):
+class HTTPSConnectionV3(http.client.HTTPSConnection):
     def __init__(self, *args, **kwargs):
-        httplib.HTTPSConnection.__init__(self, *args, **kwargs)
+        http.client.HTTPSConnection.__init__(self, *args, **kwargs)
 
     def connect(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
@@ -32,7 +32,7 @@ class HTTPSConnectionV3(httplib.HTTPSConnection):
         )
 
 
-class HTTPSHandlerV3(urllib2.HTTPSHandler):
+class HTTPSHandlerV3(urllib.request.HTTPSHandler):
     def https_open(self, req):
         return self.do_open(HTTPSConnectionV3, req)
 
@@ -47,7 +47,7 @@ class MatrikkelService(object):
         self.password = password
 
         # install opener
-        opener = urllib2.build_opener(HTTPSHandlerV3())
+        opener = urllib.request.build_opener(HTTPSHandlerV3())
         self.transport = suds.transport.https.HttpAuthenticated(
             username=username,
             password=password
@@ -56,9 +56,9 @@ class MatrikkelService(object):
         self.client = self.create_client()
 
     def create_client(self):
-        base64string = base64.encodestring(
-            '%s:%s' % (self.username, self.password)
-        ).replace('\n', '')
+        base64string = base64.b64encode(
+            ('%s:%s' % (self.username, self.password)).encode()
+        ).decode().replace('\n', '')
 
         authentication_header = {
             "WWW-Authenticate": "https://www.test.matrikkel.no",
@@ -125,7 +125,7 @@ class MatrikkelAdressService(MatrikkelService):
                 municipality_number,
                 matrikkel_context
             )
-        except Exception, e:
+        except Exception as e:
             current_app.logger.error(type(e))
             current_app.logger.error(e)
             adresses = []
