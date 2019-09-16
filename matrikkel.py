@@ -46,13 +46,6 @@ class MatrikkelService(object):
         self.username = username
         self.password = password
 
-        # install opener
-        opener = urllib.request.build_opener(HTTPSHandlerV3())
-        self.transport = suds.transport.https.HttpAuthenticated(
-            username=username,
-            password=password
-        )
-        self.transport.urlopener = opener
         self.client = self.create_client()
 
     def create_client(self):
@@ -68,7 +61,6 @@ class MatrikkelService(object):
         client = Client(
             url=self.wsdl_url,
             location=self.url,
-            transport=self.transport,
             username=self.username,
             password=self.password
         )
