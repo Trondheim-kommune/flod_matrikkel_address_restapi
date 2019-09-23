@@ -1,4 +1,0 @@
-Flask==0.11.1
-flask_basicauth==0.2.0
-gunicorn==19.9.0
-suds_jurko==0.6

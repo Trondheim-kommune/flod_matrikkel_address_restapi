@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "flod_matrikkel_address_restapi"
+version = "1"
+description = ""
+authors = ["Jonatan Hoff <jonatan.hoff@cgi.com>"]
+packages = [
+    {include = "flod_common"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+flask = "^1.1"
+gunicorn = "^19.9"
+suds_jurko = "^0.6.0"
+flask_basicauth = "^0.2.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.6"
+
+[build-system]
+requires = ["poetry==0.12.17"]
+build-backend = "poetry.masonry.api"
